@@ -81,7 +81,33 @@ int test() {
         delete collection4;
     }
     {
+        BinarySearchTree<int> searchTree = BinarySearchTree<int>();
+        searchTree.Insert(0, 15);
+        searchTree.Insert(1, 16);
+        searchTree.Insert(-1, 8);
+        assert(*searchTree.Find(1) == 16);
+        assert(*searchTree.Find(0) == 15);
+        assert(*searchTree.Find(-1) == 8);
 
+//        assert(searchTree.GetHeight() == 3);
+
+        searchTree.Remove(0);
+        assert(*searchTree.Find(1) == 16);
+        assert(*searchTree.Find(-1) == 8);
+
+        assert(searchTree.GetHeight() == 2);
+        searchTree.Remove(1);
+        searchTree.Remove(-1);
+
+        searchTree.Insert(0, 15);
+        searchTree.Insert(1, 16);
+        searchTree.Insert(-1, 8);
+        searchTree.Insert(-2, 6);
+
+        LinkedList<PATH> list = LinkedList<PATH>();
+        list.Append(LEFT);
+        list.Append(LEFT);
+        assert(*searchTree.Find(list) == 6);
     }
     return 1;
 }

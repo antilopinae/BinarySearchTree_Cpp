@@ -31,6 +31,7 @@ public:
     void DeleteList();
     void Delete(size_t index);
     void Concat(LinkedList <T> * const list);
+    void ForEach(void (*action)(T&));
     LinkedList<T>* GetSubsequence(size_t startIndex, size_t endIndex);
     ~LinkedList();
 };
@@ -160,6 +161,17 @@ void LinkedList<T>::Concat(LinkedList<T> * const list) {
     while(next){
         this->Append(next->element);
         next = next->next;
+    }
+};
+
+template <typename T>
+void LinkedList<T>::ForEach(void (*action)(T&)) {
+    VectorList<T>* next;
+    if(!_end->isEmpty()) next = _end->getElement();
+
+    while( next -> next){
+        action(next->element);
+        next = next -> next;
     }
 };
 

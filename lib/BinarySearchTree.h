@@ -9,7 +9,7 @@
 #include "LinkedList.h"
 
 enum PATH{
-    LEFT, RIGHT, PARENT
+    LEFT, RIGHT
 };
 
 enum ORDER{
@@ -28,8 +28,9 @@ struct BinaryNode{
 
 template <typename T>
 class BinarySearchTree{
-protected:
+private:
     BinaryNode<T>* top;
+protected:
     static void insert(BinaryNode<T>& node, int key, T value);
     static BinaryNode<T>* search(BinaryNode<T>* node, int key);
     static BinaryNode<T>* getMin(BinaryNode<T>* node);
@@ -44,22 +45,22 @@ protected:
     static BinaryNode<T>* Delete(BinaryNode<T>* node, int key);
     static void PrintTree(BinaryNode<T>* node);
     static void DeleteTree(BinaryNode<T>* node);
-    static void CopyTree(BinaryNode<T>* node);
-    static void EnQueueLeft(LinkedList<BinaryNode<T>*>& list, BinaryNode<T>* node);
-    static void EnQueueRight(LinkedList<BinaryNode<T>*>& list, BinaryNode<T>* node);
+    static void CopyTree(BinaryNode<T>* node, const BinaryNode<T>& tree);
+    static bool EnQueueLeft(LinkedList<BinaryNode<T>*>* list, BinaryNode<T>* node);
+    static bool EnQueueRight(LinkedList<BinaryNode<T>*>* list, BinaryNode<T>* node);
 public:
     BinarySearchTree();
     BinarySearchTree(const BinarySearchTree<T>& searchTree);
     int GetHeight();
-    bool Contains(T item);
+    int GetHeight(int key);
+    bool Contains(int key);
     void Insert(int key, const T& item);
-    void Remove(T item);
     void Remove(int key);
-    int Find(T item);
     T* Find(int key);
     T* Find(const LinkedList<PATH>& list);
-    void ForEach(void (*action)(T));
-    void Traverse(void (*action)(T), ORDER order);
+    void ForEach(void (*action)(T&));
+    void Traverse(void (*action)(T&), ORDER order);
+    void PrintTree();
     ~BinarySearchTree();
 };
 
@@ -207,25 +208,44 @@ void BinarySearchTree<T>::DeleteTree(BinaryNode<T>* node){
     if(node == nullptr) return;
     DeleteTree(node->left);
     DeleteTree(node->right);
-    std::cout<<node->value;
+    if(node->right!= nullptr) delete node->right;
+    if(node->left != nullptr) delete node->left;
 };
 
 template <typename T>
-void BinarySearchTree<T>::CopyTree(BinaryNode<T>* node){
-    if(node == nullptr) return;
-    CopyTree(node->left);
-    CopyTree(node->right);
-    std::cout<<node->value;
+void BinarySearchTree<T>::CopyTree(BinaryNode<T>* first, const BinaryNode<T>& tree){
+    if(first == nullptr) return;
+
+    LinkedList<BinaryNode<T>*>* list = new LinkedList<BinaryNode<T>*>();
+    list->Append(tree);
+
+    while(list->GetLength() != 0){
+        BinaryNode<T>* node = list->GetLast();
+        insert(first, node->key, node->value);
+
+        list->Delete(list->GetLength()-1);
+        EnQueueRight(list, node);
+        EnQueueLeft(list, node);
+    }
+    delete list;
 };
 
 template <typename T>
-void BinarySearchTree<T>::EnQueueLeft(LinkedList<BinaryNode<T>*>& list, BinaryNode<T>* node){
-    if(!node->left) list.Append(node->left);
+bool BinarySearchTree<T>::EnQueueLeft(LinkedList<BinaryNode<T>*>* list, BinaryNode<T>* node){
+    if(!node->left) {
+        list->Append(node->left);
+        return true;
+    }
+    else return false;
 };
 
 template <typename T>
-void BinarySearchTree<T>::EnQueueRight(LinkedList<BinaryNode<T>*>& list, BinaryNode<T>* node){
-    if(!node->right) list.Append(node->right);
+bool BinarySearchTree<T>::EnQueueRight(LinkedList<BinaryNode<T>*>* list, BinaryNode<T>* node){
+    if(!node->right) {
+        list->Append(node->right);
+        return true;
+    }
+    else return false;
 };
 
 //public
@@ -233,109 +253,166 @@ void BinarySearchTree<T>::EnQueueRight(LinkedList<BinaryNode<T>*>& list, BinaryN
 
 template <typename T>
 BinarySearchTree<T>::BinarySearchTree(){
-    top = new BinaryNode<T>();
+    top = nullptr;
 };
 
 template <typename T>
 BinarySearchTree<T>::BinarySearchTree(const BinarySearchTree<T>& searchTree){
-    this->DeleteTree(top);
-
+    if(!top) this->DeleteTree(top);
+    this->CopyTree(searchTree.top);
 };
 
 template <typename T>
 int BinarySearchTree<T>::GetHeight(){
+    if(top == nullptr) return 0;
     return this->top->height;
 };
 
 template <typename T>
-bool BinarySearchTree<T>::Contains(T item){
-    if(this->Find(item)!=-1) return true;
+int BinarySearchTree<T>::GetHeight(int key){
+    if(top == nullptr) throw IllegalException("NullPointerException in BinarySearchTree");
+    BinaryNode<T>* node = this->search(top, key);
+    if(node) return node->height;
+    else return -1;
+};
+
+template <typename T>
+bool BinarySearchTree<T>::Contains(int key){
+    if(top == nullptr) return false;
+    if(this->Find(key)!= nullptr) return true;
     return false;
 };
 
 template <typename T>
 void BinarySearchTree<T>::Insert(int key, const T& item) {
-    this->insert(top, key, T{item});
-};
-
-template <typename T>
-void BinarySearchTree<T>::Remove(T item){
-    int key = this->Find(item);
-    this->Delete(top, key);
+    if(top == nullptr) top = new BinaryNode<T>(key, T{item});
+    this->insert(*top, key, T{item});
 };
 
 template <typename T>
 void BinarySearchTree<T>::Remove(int key){
+    if(top == nullptr) throw IllegalException("NullPointerException in BinarySearchTree");
     this->Delete(top, key);
 };
 
 template <typename T>
-int BinarySearchTree<T>::Find(T item){
-    BinaryNode<T>* node;
-    if(node) return node->value;
-    else return -1;
-};
-
-template <typename T>
 T* BinarySearchTree<T>::Find(int key){
+    if(top == nullptr) return nullptr;
+
     BinaryNode<T>* node = this->search(top, key);
-    if(node) return node->value;
+    if(node) return &node->value;
     else return nullptr;
 };
 
 template <typename T>
 T* BinarySearchTree<T>::Find(const LinkedList<PATH>& list){
-    BinaryNode<T>* node;
-    if(node) return node->value;
+    if(top == nullptr) throw IllegalException("NullPointerException in BinarySearchTree");
+    BinaryNode<T>* node = top;
+
+    LinkedList<PATH>& _list = const_cast<LinkedList<PATH>&>(list);
+    PATH path;
+
+    for(size_t i=0; i<_list.GetLength(); ++i){
+        path = _list.Get(i);
+        switch (path) {
+            case LEFT:
+                if(node == nullptr) return nullptr;
+                node = node->left;
+                break;
+            case RIGHT:
+                if(node == nullptr) return nullptr;
+                node = node->right;
+                break;
+            default:
+                break;
+        }
+    }
+
+    if(node) return &node->value;
     else return nullptr;
 };
 
-//void Traverse(BinaryNode *node){
-//    if(node== nullptr){ return;}
-//    std::cout<<node->element;//1 pre-order
-//    Traverse(node->left);
-//    std::cout<<node->element;//2 in-order - отсортированный массив
-//    Traverse(node->right);
-//    std::cout<<node->element; //3 post-order
-//}
+template <typename T>
+void (*_action)(T&);
 
 template <typename T>
-void BinarySearchTree<T>::Traverse(void (*action)(T), ORDER order){
-    LinkedList<BinaryNode<T>*>* list = new LinkedList<T>();
+void Action(BinaryNode<T>* item){
+    _action<T>(item->value);
+}
+
+template <typename T>
+void BinarySearchTree<T>::Traverse(void (*action)(T&), ORDER order){
+    if(top == nullptr) throw IllegalException("NullPointerException in BinarySearchTree");
+
+    LinkedList<BinaryNode<T>*>* list = new LinkedList<BinaryNode<T>*>();
     switch (order) {
         case PREORDER:
             list->Append(top);
             while(list->GetLength() != 0){
                 BinaryNode<T>* node = list->GetLast();
                 action(node->value);
+                list->Delete(list->GetLength()-1);
                 this->EnQueueRight(list, node);
-                this->EnQueueRight(list, node);
+                this->EnQueueLeft(list, node);
             }
             break;
         case INORDER:
-            this->EnQueueRight(list, top);
-            list->Append(top);
-            this->EnQueueLeft(list, top);
-            while(list->GetLength() != 0){
-                BinaryNode<T>* node = list->GetLast();
+        {
+            BinaryNode<T>* node = top;
+            while(node!= nullptr && list->GetLength() != 0){
+                while(this->EnQueueLeft(list, node)){
+                    node = list->GetLast();
+                }
+                list->Delete(list->GetLength()-1);
                 action(node->value);
-                this->EnQueueRight(list, top);
-                list->Append(top);
-                this->EnQueueLeft(list, top);
+                node = node->right;
             }
             break;
+        }
         case POSTORDER:
+        {
+            LinkedList<BinaryNode<T>*>* postOrderList = new LinkedList<BinaryNode<T>*>();
             list->Append(top);
-            this->EnQueueRight(list, top);
-            this->EnQueueLeft(list, top);
-            while(list->GetLength() != 0){
-                BinaryNode<T>* node = list->GetLast();
-                action(node->value);
-                list->Append(top);
-                this->EnQueueRight(list, top);
-                this->EnQueueLeft(list, top);
+            BinaryNode<T>* prev = NULL;
+            while (list->GetLength()!=0) {
+                BinaryNode<T>* current = list->GetLast();
+                list->Delete(list->GetLength()-1);
+                /* go down the tree in search of a leaf an if so
+                   process it and pop stack otherwise move down */
+                if (prev == NULL || prev->left == current
+                    || prev->right == current) {
+                    if (EnQueueLeft(list, current)){}
+                    else if (EnQueueRight(list, current)){}
+                    else {
+                        list->Delete(list->GetLength()-1);
+                        postOrderList->Prepend(current);
+                    }
+                    /* go up the tree from left node, if the child
+                       is right push it onto stack otherwise process
+                       parent and pop stack */
+                }
+                else if (current->left == prev) {
+                    if (EnQueueRight(list, current)){}
+                    else {
+                        list->Delete(list->GetLength()-1);
+                        postOrderList->Prepend(current);
+                    }
+                    /* go up the tree from right node and after
+                    coming back from right node process parent and
+                    pop stack */
+                }
+                else if (current->right == prev) {
+                    list->Delete(list->GetLength()-1);
+                    postOrderList->Prepend(current);
+                }
+                prev = current;
             }
+            _action<T> = action;
+            auto __action = [](BinaryNode<T>*& item) { Action(item); };
+            postOrderList->ForEach(__action);
+            delete postOrderList;
             break;
+        }
         default:
             break;
     }
@@ -343,14 +420,17 @@ void BinarySearchTree<T>::Traverse(void (*action)(T), ORDER order){
 };
 
 template <typename T>
-void BinarySearchTree<T>::ForEach(void (*action)(T)){
-    LinkedList<BinaryNode<T>*>* list = new LinkedList<T>();
-    this->EnQueueRight(list, top);
+void BinarySearchTree<T>::ForEach(void (*action)(T&)){
+    if(top == nullptr) throw IllegalException("NullPointerException in BinarySearchTree");
+
+    LinkedList<BinaryNode<T>*>* list = new LinkedList<BinaryNode<T>*>();
     list->Append(top);
-    this->EnQueueLeft(list, top);
+
     while(list->GetLength() != 0){
         BinaryNode<T>* node = list->GetLast();
         action(node->value);
+        list->Delete(list->GetLength()-1);
+
         this->EnQueueRight(list, node);
         this->EnQueueLeft(list, node);
     }
@@ -358,8 +438,15 @@ void BinarySearchTree<T>::ForEach(void (*action)(T)){
 };
 
 template <typename T>
+void BinarySearchTree<T>::PrintTree(){
+    this->PrintTree(top);
+};
+
+template <typename T>
 BinarySearchTree<T>::~BinarySearchTree(){
-    top->DeleteTree(top);
+    if(top == nullptr) return;
+
+    this->DeleteTree(top);
     delete top;
 };
 
