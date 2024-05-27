@@ -89,13 +89,13 @@ int test() {
         assert(*searchTree.Find(0) == 15);
         assert(*searchTree.Find(-1) == 8);
 
-//        assert(searchTree.GetHeight() == 3);
+        assert(searchTree.GetHeight() == 1);
 
         searchTree.Remove(0);
         assert(*searchTree.Find(1) == 16);
         assert(*searchTree.Find(-1) == 8);
 
-        assert(searchTree.GetHeight() == 2);
+        assert(searchTree.GetHeight() == 1);
         searchTree.Remove(1);
         searchTree.Remove(-1);
 

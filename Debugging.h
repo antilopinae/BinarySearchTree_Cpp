@@ -10,8 +10,8 @@
 #include "BinarySearchTree.h"
 
 template<typename T>
-void printItem(T& item){
-    std::cout<<item<<std::endl;
+void printItem(BinaryNode<T>& item){
+    std::cout<<item.value;
 }
 
 template<typename T>
@@ -86,15 +86,15 @@ void testQueueWithInput(BinarySearchTree<T>* binaryTree) {
                 break;
             }
             case '6': //print preorder
-                binaryTree->Traverse(&printItem<T>,PREORDER);
+                binaryTree->Traverse(printItem<T>,PREORDER);
                 std::cout<<std::endl;
                 break;
             case '7': //print inorder
-                binaryTree->Traverse(&printItem<T>,INORDER);
+                binaryTree->Traverse(printItem<T>,INORDER);
                 std::cout<<std::endl;
                 break;
             case '8': //print postorder
-                binaryTree->Traverse(&printItem<T>,POSTORDER);
+                binaryTree->Traverse(printItem<T>,POSTORDER);
                 std::cout<<std::endl;
                 break;
             case '9': //exit
@@ -103,8 +103,10 @@ void testQueueWithInput(BinarySearchTree<T>* binaryTree) {
             default:
                 std::cout << "Invalid choice. Please enter again." << std::endl;
                 binaryTree->PrintTree();
+                std::cout<<std::endl;
                 std::cout<<"Print Tree"<<std::endl;
                 binaryTree->ForEach(printItem<T>);
+                std::cout<<std::endl;
                 std::cout<<"For Each"<<std::endl;
                 break;
         }
