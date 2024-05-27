@@ -218,8 +218,7 @@ void BinarySearchTree<T>::DeleteTree(BinaryNode<T>* node){
     if(node == nullptr) return;
     DeleteTree(node->left);
     DeleteTree(node->right);
-    if(node->right!= nullptr) delete node->right;
-    if(node->left != nullptr) delete node->left;
+    delete node;
 };
 
 template <typename T>
@@ -447,7 +446,6 @@ BinarySearchTree<T>::~BinarySearchTree(){
     if(top == nullptr) return;
 
     this->DeleteTree(top);
-    delete top;
 };
 
 #endif //BINARY_SEARCH_TREE_H
