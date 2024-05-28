@@ -99,7 +99,7 @@ template <typename T>
 BinaryNode<T>* BinarySearchTree<T>::search(BinaryNode<T>* node, int key){
     if(node == nullptr) return nullptr;
     if(node->key == key) return node;
-    return (key<node->key)?search(node->left, key):search(node->right, key);
+    return (key<node->key) ? search(node->left, key) : search(node->right, key);
 };
 
 template <typename T>
@@ -209,7 +209,7 @@ template <typename T>
 void BinarySearchTree<T>::PrintTree(BinaryNode<T>* node){
     if(node == nullptr) return;
     PrintTree(node->left);
-    std::cout<<node->value;
+    std::cout<<node->value<<" ";
     PrintTree(node->right);
 };
 

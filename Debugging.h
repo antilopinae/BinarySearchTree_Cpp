@@ -11,7 +11,7 @@
 
 template<typename T>
 void printItem(BinaryNode<T>& item){
-    std::cout<<item.value;
+    std::cout<<item.value<<" ";
 }
 
 template<typename T>
