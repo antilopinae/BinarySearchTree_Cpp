@@ -296,7 +296,15 @@ bool BinarySearchTree<T>::Contains(int key){
 template <typename T>
 void BinarySearchTree<T>::Insert(int key, const T& item) {
     if(top == nullptr) top = new BinaryNode<T>(key, T{item});
-    else this->insert(*top, key, T{item});
+    else {
+        BinaryNode<T>* node = this->search(top, key);
+        if(node == nullptr){
+            this->insert(*top, key, T{item});
+        }
+        else{
+            node->value = T{item};
+        }
+    }
     updateHeight(top);
     balance(top);
 };
